@@ -10,7 +10,7 @@ This document describes the research questions and observations without publishi
 
 | Layer | Research question | Signals considered | Documented observation | Public boundary |
 |---:|---|---|---|---|
-| 1. Static artifact analysis | What can be inferred before execution? | File signatures, recognizable byte patterns, literal strings, import surface, PE structure, and entropy | The captured Microsoft Defender custom scan reported no threat | Public code contains read-only PE and entropy analysis only |
+| 1. Static artifact analysis | What can be inferred before execution? | File signatures, recognizable byte patterns, literal strings, import surface, PE structure, and entropy | The captured Microsoft Defender custom scan reported no threat | One original byte-transformation helper is public; the artifact and structural implementation remain private |
 | 2. Reputation and heuristics | Does the artifact resemble known or suspicious software? | Metadata coherence, file history, cloud reputation, unusual imports, and structural anomalies | No alert was recorded in the documented default Windows 11 configuration | Metadata values and private build decisions are withheld |
 | 3. Environment and sandbox analysis | Does execution differ inside a short-lived or synthetic environment? | Timing behavior, resource profile, interaction state, and environmental consistency | The controlled run reached its intended runtime phase | Thresholds, checks, and decision logic are withheld |
 | 4. Telemetry and API observation | Which user-mode events expose the execution chain? | Event telemetry, API call visibility, module observation, and security-product hooks | User-mode visibility was reduced in the tested configuration | No telemetry-modification code or patch location is public |
@@ -36,7 +36,7 @@ The public release therefore exposes:
 - the complete layer model;
 - the defensive signals examined;
 - outcome and limitation reporting;
-- compile-ready analytical C++;
+- one authentic, non-operational C++ excerpt from the private source;
 - sanitized evidence.
 
 It does not expose the mechanism that changes those signals.

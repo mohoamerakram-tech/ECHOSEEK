@@ -1,6 +1,6 @@
 # Security and Responsible Disclosure
 
-This repository contains documentation and sanitized evidence only. It does not contain a runnable product or a supported software package.
+This repository contains documentation, sanitized evidence, and one small authentic source excerpt. It does not contain a runnable product or a supported software package.
 
 ## Reporting a problem
 
@@ -10,7 +10,7 @@ If you notice that a published file accidentally exposes personal data, infrastr
 
 For safety and confidentiality, I will not provide:
 
-- source code or compiled binaries;
+- additional private source code or compiled binaries;
 - payloads or command-and-control configuration;
 - step-by-step reproduction or deployment instructions;
 - unredacted infrastructure evidence;

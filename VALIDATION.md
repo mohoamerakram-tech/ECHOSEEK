@@ -4,7 +4,7 @@
 
 The ECHOSEEK evaluation was performed in an isolated lab using a Windows 11 x64 virtual machine and a separate Linux system for controlled research infrastructure. Testing was limited to systems and accounts authorized for the internship project.
 
-The public repository records outcomes without publishing the implementation, payload, infrastructure, or procedure needed to reproduce offensive behavior.
+The public repository records outcomes and one small original helper without publishing the complete implementation, test artifact, infrastructure, or procedure needed to reproduce offensive behavior.
 
 ## Evidence chain
 
@@ -39,4 +39,4 @@ The public release includes three low-risk screenshots and a sanitized test vide
 
 ## Private verification
 
-For legitimate academic or recruitment review, additional evidence may be shown privately with infrastructure identifiers, personal data, signatures, and operational details redacted as appropriate. No source code, binary, payload, or deployment procedure will be distributed.
+For legitimate academic or recruitment review, additional evidence may be shown privately with infrastructure identifiers, personal data, signatures, and operational details redacted as appropriate. Beyond the clearly identified public excerpt, no private source, binary, test artifact, or deployment procedure will be distributed.

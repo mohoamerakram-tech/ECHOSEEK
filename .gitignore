@@ -1,4 +1,4 @@
-# Keep this public showcase documentation-only.
+# Block operational source and build artifacts by default.
 *.exe
 *.dll
 *.bin
@@ -36,6 +36,6 @@ build/
 dist/
 tmp/
 
-# Explicitly permit the reviewed, non-operational public C++ subset.
+# Explicitly permit only the reviewed authentic excerpt directory.
 !public-code/
 !public-code/**

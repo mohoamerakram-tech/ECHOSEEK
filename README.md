@@ -1,73 +1,132 @@
 # ECHOSEEK
 
-### Windows endpoint-security research, systems engineering, and controlled adversary emulation
+### Windows in-memory execution and endpoint-visibility research
 
 <p>
-  <a href="https://github.com/mohoamerakram-tech/ECHOSEEK/actions/workflows/public-safe-build.yml"><img src="https://github.com/mohoamerakram-tech/ECHOSEEK/actions/workflows/public-safe-build.yml/badge.svg" alt="Public-safe C++ build"></a>
-  <img src="https://img.shields.io/badge/C%2B%2B-20-00599C?logo=cplusplus&logoColor=white" alt="C++20">
+  <img src="https://img.shields.io/badge/C%2B%2B-Windows-00599C?logo=cplusplus&logoColor=white" alt="C++ on Windows">
   <img src="https://img.shields.io/badge/Windows-11-0078D4?logo=windows11&logoColor=white" alt="Windows 11">
   <img src="https://img.shields.io/badge/Kali-Linux-557C94?logo=kalilinux&logoColor=white" alt="Kali Linux">
   <img src="https://img.shields.io/badge/VMware-Workstation-607078?logo=vmware&logoColor=white" alt="VMware Workstation">
-  <img src="https://img.shields.io/badge/CMake-Build-064F8C?logo=cmake&logoColor=white" alt="CMake">
   <img src="https://img.shields.io/badge/Sliver-Adversary%20Emulation-161B22" alt="Sliver adversary-emulation framework">
   <img src="https://img.shields.io/badge/Microsoft-Defender-0078D4?logo=microsoft&logoColor=white" alt="Microsoft Defender">
   <img src="https://img.shields.io/badge/Malwarebytes-EF2E24?logo=malwarebytes&logoColor=white" alt="Malwarebytes">
   <img src="https://img.shields.io/badge/Bitdefender-ED1C24" alt="Bitdefender">
 </p>
 
-ECHOSEEK is a privately held C++ research prototype developed during my cybersecurity engineering internship at ACKSEEK from 15 June to 1 September 2026. The project studied how endpoint-security products observe a custom Windows execution chain across static analysis, user-mode telemetry, native interfaces, memory semantics, and behavioral correlation.
+ECHOSEEK is a private C++ research prototype developed during my cybersecurity engineering internship at ACKSEEK from 15 June to 1 September 2026. It studies how a Windows in-memory execution chain appears to antivirus and endpoint detection products at several different layers.
 
-This is a deliberately limited public engineering record. It contains enough technical material to evaluate the work, but it does not distribute the loader, payload, bypass implementation, infrastructure, or reproduction procedure.
+The complete implementation is not public because the combined project is an operational loader. This repository explains the complete design and results, publishes sanitized proof, and includes only one small authentic source excerpt from my original code.
 
-## What is verifiable here
+## ECHOSEEK in one minute
 
-| Artifact | What it demonstrates |
+| Question | Answer |
 |---|---|
-| [Public-safe C++ subset](public-code/) | Compile-ready C++20, defensive PE-header parsing, entropy measurement, bounds checking, and testable data modelling |
-| [Seven-layer technical model](TECHNICAL-NOTES.md) | The complete research surface, defensive signals considered, observed limits, and explicit publication boundary |
-| [Sanitized lab video](assets/demo/echoseek-lab-validation-redacted.mp4) | Defender state, runtime memory transition, controlled Sliver session establishment, and final custom-scan result |
-| [Validation notes](VALIDATION.md) | Environment, evidence chain, reported observations, and interpretation limits |
-| [Evidence stills](#evidence-stills) | Privacy-safe snapshots extracted from the private engineering report |
+| What is it? | A Windows research loader used in an isolated lab with an authorized Sliver test artifact |
+| What was the goal? | Study which indicators remain visible across files, telemetry, native calls, process memory, execution history, and behavior |
+| What did I build? | Configuration decoding, WinHTTP retrieval, dynamic buffering, native-call resolution, telemetry modification, section-backed memory views, in-memory transformation, and asynchronous dispatch |
+| What worked? | The documented Defender, Malwarebytes, and selected Bitdefender static or memory-oriented checks did not alert in the tested configuration |
+| What failed? | Bitdefender Advanced Threat Defense detected the runtime behavior |
+| What is public? | Architecture, full conceptual flow, evasion-layer analysis, sanitized evidence, and one unchanged helper from the original source |
 
-## Engineering scope
+The important conclusion is not that ECHOSEEK is “undetectable.” It is that hiding individual indicators is different from hiding the history of how execution reached a sensitive operation.
 
-The private prototype was organized into execution, native-interface, telemetry, resource, and build components. The public repository exposes only analytical and documentation code. The original implementation remains withheld because its components are operational when combined.
+## Project structure
+
+The private project has three main code areas:
+
+| Private component | Responsibility | Public status |
+|---|---|---|
+| `implant.cpp` | Coordinates startup delay, configuration recovery, network retrieval, buffer management, memory preparation, dispatch, and cleanup | One small transformation helper is public |
+| `syscalls.cpp` / `syscalls.h` | Resolves the native operations needed by the prototype and prepares the low-level call interface | Design explained; implementation withheld |
+| `etw.cpp` / `etw.h` | Changes a user-mode telemetry path for the controlled experiment | Design explained; implementation withheld |
+
+## Complete execution flow
 
 ```mermaid
-flowchart LR
-    A[Controlled input] --> B[Environment assessment]
-    B --> C[Windows interface layer]
-    C --> D[Memory lifecycle]
-    D --> E[Controlled execution]
-    E --> F[Endpoint observations]
-    F --> G[Comparative evaluation]
-
-    S1[Static surface] -. measured .-> A
-    S2[Telemetry] -. observed .-> C
-    S3[Memory semantics] -. observed .-> D
-    S4[Behavior correlation] -. observed .-> E
+flowchart TD
+    A[Program starts in the Windows lab] --> B[Delay and environment phase]
+    B --> C[Prepare the native-call interface]
+    C --> D[Reduce one user-mode telemetry path]
+    D --> E[Decode the private lab configuration]
+    E --> F[Retrieve the authorized test artifact with WinHTTP]
+    F --> G[Grow the receive buffer as data arrives]
+    G --> H[Prepare and transform the in-memory representation]
+    H --> I[Create separate writable and executable views]
+    I --> J[Remove the writable view]
+    J --> K[Schedule execution in the current process]
+    K --> L[Observe the controlled Sliver session]
+    L --> M[Compare endpoint-security results]
 ```
 
-The diagram is architectural, not procedural. It intentionally omits algorithms, API sequences, constants, payload formats, and operational configuration.
+### 1. Startup and timing
 
-## How the private prototype works
+The program begins with a deliberate delay. This was used to study a simple sandbox limitation: short automated analysis windows may stop observing before delayed activity begins. A delay alone is not reliable evasion and is easy for mature analysis systems to recognize or accelerate.
 
-The private program is a staged Windows research prototype. In plain language, its data flow is:
+### 2. Native-call preparation
 
-1. **Recover configuration.** A small configuration value is decoded only when the program runs, reducing obvious readable strings in the file.
-2. **Acquire the controlled test input.** Windows networking APIs parse the configured endpoint and receive the authorized lab artifact into a dynamically sized buffer.
-3. **Prepare the in-memory representation.** The received bytes are transformed into the internal layout expected by the prototype. The exact wrapper and offsets are not public.
-4. **Move through the memory lifecycle.** The private implementation separates the writable preparation phase from the executable view used later. This let the project study how memory type, permissions, and transition history affect detection.
-5. **Transfer control.** Execution is scheduled on the current process using a Windows asynchronous-dispatch mechanism. The dispatch call sequence is withheld.
-6. **Measure the result.** The run is observed from Windows, the controlled Sliver environment, and several endpoint-security products. The Bitdefender behavioral result showed that reducing isolated indicators did not erase the complete runtime story.
+The private `syscalls` component locates the native operations required for section creation, view mapping, and view removal. The experiment included a Halo's Gate-style neighboring-stub search and a fallback reader, then created a small local call interface.
 
-This description explains the engineering chain without providing the constants, native-call resolver, telemetry modification, memory-mapping sequence, or dispatch sequence required to reproduce it.
+Why this mattered: many products observe conventional user-mode API paths. Moving closer to the operating-system boundary changes which user-mode hooks see the request, but it does not make the kernel operation or its consequences invisible.
 
-## Authentic fragments from the private source
+The resolver, identifiers, generated stubs, byte patterns, and exact call sequence are not published.
 
-The following excerpts are copied from the original project source. Only small, non-operational fragments are shown; adjacent loader logic, identifiers, secrets, and execution code are omitted.
+### 3. User-mode telemetry experiment
 
-### 1. In-place byte transformation
+The private `etw` component changed the user-mode Event Tracing for Windows write path used in the experiment. ETW is a Windows event infrastructure used by the operating system and security products. The purpose was to measure what happened when one user-mode source produced less telemetry.
+
+This did not disable every form of monitoring. Kernel visibility, memory inspection, call-stack analysis, and behavioral correlation remained available. The modification code and patch bytes are withheld.
+
+### 4. Configuration and network retrieval
+
+The lab endpoint was stored in an encoded form and recovered at runtime. WinHTTP then parsed the URL, opened the authorized HTTPS connection, and received the controlled test artifact in blocks.
+
+The receive buffer began with reserved capacity and expanded when another block would exceed the current allocation. Network identifiers, encoded bytes, key material, request settings, and infrastructure configuration are not public.
+
+### 5. In-memory preparation
+
+The received data was converted into the internal representation expected by the prototype and transformed in memory. A small MZ-like wrapper was part of this experiment, allowing the project to study how recognizable structure and memory content influence scanning.
+
+The wrapper layout, offsets, artifact format, and complete transformation sequence remain private.
+
+### 6. Section-backed memory lifecycle
+
+Instead of treating one private allocation as writable and executable at the same time, the prototype used a section-backed design with separate views:
+
+- a writable view for copying and preparation;
+- an executable view for the later controlled transfer;
+- removal of the writable view before dispatch.
+
+Both views referred to the same underlying section. This made memory type, permission history, and view lifetime part of the evaluation. The exact native calls, flags, and ordering code are withheld.
+
+### 7. Asynchronous dispatch
+
+The final transfer was scheduled through an asynchronous Windows mechanism on the current thread, followed by an alertable state in which the scheduled routine could run. This avoided creating a new worker thread, but it did not remove behavioral evidence such as instruction-pointer history, call-stack provenance, or process context.
+
+The dispatch API sequence and executable offset are not published.
+
+### 8. Controlled validation
+
+The resulting session was observed in an isolated Sliver lab. Windows Security state, process behavior, memory changes, and product reactions were recorded. No persistence, lateral movement, credential access, or activity outside the authorized lab was part of this evaluation.
+
+## Evasion and visibility layers
+
+| Layer | Technique evaluated | What it attempted to change | Result in the documented lab |
+|---:|---|---|---|
+| 1 | Runtime string decoding and altered in-memory representation | Readable strings and recognizable static content | No alert in the captured Defender custom scan |
+| 2 | Delayed startup | Short sandbox observation windows | The controlled run reached its intended runtime phase |
+| 3 | User-mode telemetry modification | One ETW event path | Reduced that user-mode signal; other visibility remained |
+| 4 | Native-call resolution | Exposure to conventional API hooks | Required native operations completed in the lab |
+| 5 | Section-backed writable and executable views | Allocation type and permission-transition indicators | Tested memory-oriented checks did not alert in the recorded configuration |
+| 6 | Asynchronous current-thread dispatch | New-thread indicators | The controlled session reached its expected state |
+| 7 | Behavioral correlation | The complete execution story | Bitdefender Advanced Threat Defense detected the runtime behavior |
+
+The detailed defensive interpretation is available in [TECHNICAL-NOTES.md](TECHNICAL-NOTES.md).
+
+## Authentic public code
+
+The [`public-code`](public-code/) directory now contains only a genuine excerpt from the original private project. It does not contain a rewritten demonstration or code created for this repository.
+
+[`source_excerpt.cpp`](public-code/source_excerpt.cpp) publishes the original in-place byte transformation helper:
 
 ```cpp
 void XorMemory(PVOID base, SIZE_T size, BYTE* key, DWORD keyLen) {
@@ -78,111 +137,48 @@ void XorMemory(PVOID base, SIZE_T size, BYTE* key, DWORD keyLen) {
 }
 ```
 
-The function walks a byte range and combines each byte with a repeating key. Applying the same operation twice restores the original bytes. It demonstrates pointer arithmetic, bounded iteration, and in-place transformation; it is simple obfuscation, not cryptographic protection. The original key and the data passed to this helper are not published.
+How it works:
 
-### 2. Windows URL decomposition
+1. `base` points to the first byte of a memory region.
+2. The pointer is treated as a byte array.
+3. The loop visits exactly `size` bytes.
+4. `i % keyLen` repeats the key when the region is longer than the key.
+5. XOR changes each byte in place. Applying the same key a second time restores the original value.
 
-```cpp
-URL_COMPONENTS urlComp;
-ZeroMemory(&urlComp, sizeof(urlComp));
-urlComp.dwStructSize = sizeof(urlComp);
-urlComp.dwHostNameLength = (DWORD)-1;
-urlComp.dwUrlPathLength = (DWORD)-1;
-urlComp.dwExtraInfoLength = (DWORD)-1;
-if (!WinHttpCrackUrl(wide_url, 0, 0, &urlComp)) {
-    return 1;
-}
-```
+This is simple reversible obfuscation, not encryption. In the private program it was only one helper inside a larger memory lifecycle. The original caller supplied a non-empty key; a reusable production interface should validate that `keyLen` is not zero.
 
-Windows receives a fully initialized `URL_COMPONENTS` structure and returns views of the hostname, path, and extra information. Setting the component lengths to `-1` asks WinHTTP to calculate them. The actual endpoint, component copies, request construction, certificate settings, and transfer procedure are deliberately absent.
+## Technology and lab stack
 
-### 3. Checked geometric buffer growth
-
-```cpp
-if (totalBytes + bytesRead > capacity) {
-    capacity *= 2;
-    unsigned char* newPayload = (unsigned char*)realloc(payload, capacity);
-    if (!newPayload) { free(payload); return 1; }
-    payload = newPayload;
-}
-memcpy(payload + totalBytes, buffer, bytesRead);
-totalBytes += bytesRead;
-```
-
-The receive buffer starts with reserved capacity and doubles only when the next block would exceed it. The temporary `realloc` result prevents the original allocation from being lost on failure. The final two lines append the new block and advance the logical length. The code that obtains the bytes and the code that consumes the completed buffer are not public.
-
-These excerpts establish that the portfolio is backed by working Windows C++ while keeping the operational composition private. The separate [`public-code/`](public-code/) directory contains a safe program that reviewers can compile and execute.
-
-## Seven layers evaluated
-
-| Layer | Evaluation focus | Outcome in the documented lab |
-|---:|---|---|
-| 1 | Static artifact analysis | No alert in the captured Microsoft Defender scan |
-| 2 | Reputation and heuristic surface | No alert in the documented default Windows 11 configuration |
-| 3 | Environment and sandbox analysis | Controlled execution reached the intended runtime phase |
-| 4 | Telemetry and API observation | User-mode visibility was reduced in the tested configuration |
-| 5 | Native-call interception boundary | The prototype reached the intended native operations |
-| 6 | Memory-region inspection | The tested memory-oriented checks did not identify the staged content |
-| 7 | Behavioral correlation | Bitdefender Advanced Threat Defense detected the runtime behavior |
-
-The final row is important. The project did not achieve universal endpoint-security evasion. Its principal technical finding was the boundary between spatial concealment and behavior-aware detection. The detailed model is in [TECHNICAL-NOTES.md](TECHNICAL-NOTES.md).
-
-## Public-safe code
-
-The code under [`public-code/`](public-code/) is intentionally small but real. It builds and runs independently:
-
-```bash
-cmake -S public-code -B public-code/build
-cmake --build public-code/build
-ctest --test-dir public-code/build --output-on-failure
-```
-
-It includes:
-
-- bounds-checked PE signature and COFF-header inspection;
-- Shannon entropy measurement for byte ranges;
-- a typed model for recording observations across all seven research layers;
-- a self-test using an in-memory synthetic PE header.
-
-It does not include execution, injection, telemetry modification, native-call resolution, payload retrieval, encryption material, or command-and-control logic.
-
-## Technology and test stack
-
-| Technology | Role in the project |
+| Technology | Role |
 |---|---|
-| C++ and Windows SDK | Systems implementation, PE structures, Win32 and native-interface research |
+| C++ and Windows SDK | Private systems implementation and Windows interface research |
 | Windows 11 x64 | Isolated endpoint under evaluation |
 | Kali Linux | Separate authorized lab infrastructure |
-| VMware Workstation | Reproducible virtualized test boundary |
-| [Sliver](https://github.com/BishopFox/sliver) | Authorized adversary-emulation framework used to validate the controlled end-to-end session |
+| VMware Workstation | Reproducible virtual-machine boundary |
+| [Sliver](https://github.com/BishopFox/sliver) | Authorized adversary-emulation framework used for the controlled session |
 | Microsoft Defender | Primary Windows endpoint-protection evaluation |
 | Malwarebytes | Secondary real-time and heuristic evaluation |
 | Bitdefender | Static, memory-oriented, and advanced behavioral evaluation |
-| CMake and CTest | Build and verification of the public-safe analytical subset |
 
-Product names and logos belong to their respective owners. Their appearance here identifies the test environment and does not imply endorsement.
+Product names and logos identify the documented test environment and do not imply endorsement.
 
-## Lab video
+## Proof and validation
 
-[Watch or download the sanitized lab validation video](assets/demo/echoseek-lab-validation-redacted.mp4)
+[Watch or download the sanitized 127-second lab video](assets/demo/echoseek-lab-validation-redacted.mp4)
 
-The 127-second H.264 recording is derived from the original test capture. It preserves the observable Defender and runtime transitions while removing audio and excluding public IP addresses, private addresses, ports, endpoint names, usernames, session identifiers, and transfer logs. The unredacted recording is not published.
+The public cut preserves the Defender and runtime observations while excluding audio, addresses, ports, endpoint names, usernames, session identifiers, and transfer logs.
 
-## Validation summary
-
-| Evaluation layer | Documented observation | Public evidence |
+| Evaluation | Documented observation | Public evidence |
 |---|---|---|
-| Microsoft Defender custom scan | No threat reported in the captured lab snapshot | Screenshot and video |
-| Windows Security after execution | Dashboard remained in a no-action-needed state in the captured run | Screenshot and video |
+| Microsoft Defender custom scan | No threat reported in the captured snapshot | Screenshot and video |
+| Windows Security after execution | No action required in the captured run | Screenshot and video |
 | Runtime observation | Expected host process remained active with the documented memory transition | Screenshot and video |
-| End-to-end lab path | The controlled Sliver session reached its expected state | Redacted video; identifiers withheld |
+| Controlled Sliver path | Session reached its expected state | Sanitized video; identifiers withheld |
 | Malwarebytes | No alert in the tested configuration | Private report |
-| Bitdefender static and memory layers | No alert in the tested configuration | Private report |
-| Bitdefender advanced behavioral layer | Runtime behavior was detected | Reported as the main limitation |
+| Bitdefender static and memory-oriented checks | No alert in the tested configuration | Private report |
+| Bitdefender Advanced Threat Defense | Runtime behavior was detected | Reported as the principal limitation |
 
-These are time-bounded observations from a specific isolated environment, not claims about current product versions or universal bypass capability.
-
-## Evidence stills
+These are observations from one controlled environment in 2026, not a current benchmark or a universal bypass claim.
 
 ### Defender scan snapshot
 
@@ -196,20 +192,31 @@ These are time-bounded observations from a specific isolated environment, not cl
 
 ![Task Manager showing the expected host process memory transition](assets/evidence/runtime-process-observation.jpg)
 
-## Independent verification
+## Terms used in this repository
 
-A signed internship attestation and evaluation from ACKSEEK confirm successful completion of the internship and the ECHOSEEK project. The originals contain contact data, signatures, and company stamps, so they are available only for legitimate private academic or recruitment verification.
+| Term | Plain meaning |
+|---|---|
+| ETW | Windows event infrastructure used for diagnostics and security telemetry |
+| Native call | A lower-level request made close to the Windows kernel boundary |
+| Section | A Windows memory object that can be represented by more than one mapped view |
+| APC | A Windows mechanism that schedules a routine to run in a thread under specific conditions |
+| Sliver | An adversary-emulation framework used here only inside the authorized lab |
+| Behavioral detection | Detection based on the sequence and context of actions, not only file contents |
 
 ## Publication boundary
 
-The following are not distributed:
+The following remain private:
 
-- the original stager source, executable, payload, or build chain;
-- telemetry modification or native-call implementation;
-- memory-execution and thread-dispatch implementation;
-- encrypted configuration, keys, addresses, or deployment instructions;
-- the full report, unredacted video, and internship documents.
+- the complete `implant.cpp`, `syscalls.cpp`, `syscalls.h`, `etw.cpp`, and `etw.h` sources;
+- the executable, test artifact, and complete build chain;
+- native-call resolution and generated call-interface code;
+- telemetry modification code;
+- memory mapping and execution-dispatch code;
+- keys, encoded configuration, addresses, request settings, and infrastructure;
+- the unredacted recording, full report, and signed internship documents.
 
-This repository is intended for portfolio review, defensive research discussion, and authorized academic evaluation. It is not a software release.
+A signed ACKSEEK internship attestation and evaluation confirm completion of the internship and project. They are available only for legitimate private academic or recruitment verification because they contain contact information, signatures, and company stamps.
+
+This repository is a portfolio record for defensive research discussion and authorized review. It is not a software release.
 
 Copyright (c) 2026 Akram Moho Amer. No license is granted for the private implementation or omitted materials.
