@@ -1,8 +1,15 @@
-# ECHOSEEK
+<p align="center">
+  <img src="assets/branding/echoseek-logo.png" alt="ECHOSEEK" width="520">
+</p>
 
-### Windows in-memory execution and endpoint-visibility research
+<h3 align="center">Windows in-memory execution and endpoint-visibility research</h3>
 
-<p>
+<p align="center">
+  A controlled internship project examining what endpoint-security products can still observe<br>
+  after static, telemetry, native-interface, memory, and execution indicators are reduced.
+</p>
+
+<p align="center">
   <img src="https://img.shields.io/badge/C%2B%2B-Windows-00599C?logo=cplusplus&logoColor=white" alt="C++ on Windows">
   <img src="https://img.shields.io/badge/Windows-11-0078D4?logo=windows11&logoColor=white" alt="Windows 11">
   <img src="https://img.shields.io/badge/Kali-Linux-557C94?logo=kalilinux&logoColor=white" alt="Kali Linux">
@@ -12,6 +19,16 @@
   <img src="https://img.shields.io/badge/Malwarebytes-EF2E24?logo=malwarebytes&logoColor=white" alt="Malwarebytes">
   <img src="https://img.shields.io/badge/Bitdefender-ED1C24" alt="Bitdefender">
 </p>
+
+<p align="center">
+  <a href="#echoseek-in-one-minute">Overview</a> ·
+  <a href="#complete-execution-flow">Architecture</a> ·
+  <a href="#evasion-and-visibility-layers">Evaluation layers</a> ·
+  <a href="#authentic-public-code">Authentic code</a> ·
+  <a href="#watch-the-controlled-demonstration">Demonstration</a>
+</p>
+
+---
 
 ECHOSEEK is a private C++ research prototype developed during my cybersecurity engineering internship at ACKSEEK from 15 June to 1 September 2026. It studies how a Windows in-memory execution chain appears to antivirus and endpoint detection products at several different layers.
 
@@ -162,35 +179,84 @@ This is simple reversible obfuscation, not encryption. In the private program it
 
 Product names and logos identify the documented test environment and do not imply endorsement.
 
-## Proof and validation
+## Watch the controlled demonstration
 
-[Watch or download the sanitized 127-second lab video](assets/demo/echoseek-lab-validation-redacted.mp4)
+<p align="center">
+  <a href="assets/demo/echoseek-lab-validation-redacted.mp4">
+    <img src="assets/demo/echoseek-demo-preview.gif" alt="ECHOSEEK controlled lab demonstration" width="720">
+  </a>
+</p>
 
-The public cut preserves the Defender and runtime observations while excluding audio, addresses, ports, endpoint names, usernames, session identifiers, and transfer logs.
+<p align="center">
+  <strong>The complete 114-second demonstration plays directly in this README as an animated preview.</strong><br>
+  Click the preview to open the higher-quality H.264 MP4 stored in the repository.
+</p>
 
-| Evaluation | Documented observation | Public evidence |
+The public cut is silent and excludes infrastructure addresses, ports, endpoint names, usernames, session identifiers, hashes, and transfer logs. It preserves only the observations needed to understand the result.
+
+### What happens in the recording
+
+| Moment | What the viewer should look for | Why it matters |
+|---:|---|---|
+| 1. Baseline | Windows Security reports no current threat; the filtered host process initially has minimal memory usage | Establishes the endpoint and process state before the controlled execution phase |
+| 2. Runtime transition | The same host process rises to approximately 109.8 MB while remaining active | Shows the visible process-memory effect associated with the in-memory test |
+| 3. Controlled session | A redacted title card records that the Sliver validation session was established | Confirms the end-to-end lab path without exposing session or infrastructure metadata |
+| 4. Post-run check | Windows Security remains in a no-action-needed state and the recorded custom scan reports no threat | Documents the product state captured after the run; it is not a universal bypass claim |
+
+### Result matrix
+
+| Evaluation | Documented observation | Evidence available here |
 |---|---|---|
-| Microsoft Defender custom scan | No threat reported in the captured snapshot | Screenshot and video |
-| Windows Security after execution | No action required in the captured run | Screenshot and video |
-| Runtime observation | Expected host process remained active with the documented memory transition | Screenshot and video |
-| Controlled Sliver path | Session reached its expected state | Sanitized video; identifiers withheld |
-| Malwarebytes | No alert in the tested configuration | Private report |
-| Bitdefender static and memory-oriented checks | No alert in the tested configuration | Private report |
+| Microsoft Defender custom scan | No threat reported in the captured snapshot | Demonstration and Evidence 1 |
+| Windows Security after execution | No action required in the captured run | Demonstration and Evidence 2 |
+| Runtime process observation | Expected host process remained active with the documented memory transition | Demonstration and Evidence 3 |
+| Controlled Sliver path | Session reached its expected state | Redacted title card in the demonstration |
+| Malwarebytes | No alert in the tested configuration | Private engineering report |
+| Bitdefender static and memory-oriented checks | No alert in the tested configuration | Private engineering report |
 | Bitdefender Advanced Threat Defense | Runtime behavior was detected | Reported as the principal limitation |
 
-These are observations from one controlled environment in 2026, not a current benchmark or a universal bypass claim.
+These are time-bounded observations from one isolated environment in 2026, not a current benchmark or a universal bypass claim.
 
-### Defender scan snapshot
+### Evidence stills with context
+
+<details>
+<summary><strong>Evidence 1 — Defender custom scan result</strong></summary>
+
+**Context:** captured after the controlled test while reviewing the endpoint with Microsoft Defender.
+
+**What it supports:** the custom scan shown in this specific snapshot completed without reporting a threat.
+
+**What it does not prove:** that the artifact will remain undetected by current or future signatures, cloud models, or configurations.
 
 ![Windows Security custom scan showing no threats in the documented snapshot](assets/evidence/defender-scan-redacted.png)
 
-### Windows Security after the documented run
+</details>
+
+<details>
+<summary><strong>Evidence 2 — Windows Security post-run state</strong></summary>
+
+**Context:** Windows Security dashboard recorded after the documented execution sequence.
+
+**What it supports:** the dashboard displayed a no-action-needed state at the captured moment.
+
+**What it does not prove:** absence of telemetry, delayed detection, or detection by a different endpoint product.
 
 ![Windows Security dashboard showing no action needed in the documented snapshot](assets/evidence/defender-status-redacted.png)
 
-### Runtime process observation
+</details>
+
+<details>
+<summary><strong>Evidence 3 — Host-process memory transition</strong></summary>
+
+**Context:** Task Manager was filtered to the expected host process during the controlled run.
+
+**What it supports:** the process remained active and its memory usage changed from the baseline to approximately 109.8 MB.
+
+**What it does not prove:** the internal mechanism by itself; that interpretation depends on the private source, report, and complete recording.
 
 ![Task Manager showing the expected host process memory transition](assets/evidence/runtime-process-observation.jpg)
+
+</details>
 
 ## Terms used in this repository
 
