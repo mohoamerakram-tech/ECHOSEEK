@@ -1,95 +1,152 @@
-# ECHOSEEK - Windows Endpoint Security Research
+# ECHOSEEK
 
-> A public, non-operational portfolio showcase of a controlled security research project.
+### Windows endpoint-security research, systems engineering, and controlled adversary emulation
 
-## Overview
+<p>
+  <a href="https://github.com/mohoamerakram-tech/ECHOSEEK/actions/workflows/public-safe-build.yml"><img src="https://github.com/mohoamerakram-tech/ECHOSEEK/actions/workflows/public-safe-build.yml/badge.svg" alt="Public-safe C++ build"></a>
+  <img src="https://img.shields.io/badge/C%2B%2B-20-00599C?logo=cplusplus&logoColor=white" alt="C++20">
+  <img src="https://img.shields.io/badge/Windows-11-0078D4?logo=windows11&logoColor=white" alt="Windows 11">
+  <img src="https://img.shields.io/badge/Kali-Linux-557C94?logo=kalilinux&logoColor=white" alt="Kali Linux">
+  <img src="https://img.shields.io/badge/VMware-Workstation-607078?logo=vmware&logoColor=white" alt="VMware Workstation">
+  <img src="https://img.shields.io/badge/CMake-Build-064F8C?logo=cmake&logoColor=white" alt="CMake">
+  <img src="https://img.shields.io/badge/Sliver-Adversary%20Emulation-161B22" alt="Sliver adversary-emulation framework">
+  <img src="https://img.shields.io/badge/Microsoft-Defender-0078D4?logo=microsoft&logoColor=white" alt="Microsoft Defender">
+  <img src="https://img.shields.io/badge/Malwarebytes-EF2E24?logo=malwarebytes&logoColor=white" alt="Malwarebytes">
+  <img src="https://img.shields.io/badge/Bitdefender-ED1C24" alt="Bitdefender">
+</p>
 
-ECHOSEEK was developed during my cybersecurity engineering internship at ACKSEEK (15 June - 1 September 2026) as part of my studies at ENSA El Jadida.
+ECHOSEEK is a privately held C++ research prototype developed during my cybersecurity engineering internship at ACKSEEK from 15 June to 1 September 2026. The project studied how endpoint-security products observe a custom Windows execution chain across static analysis, user-mode telemetry, native interfaces, memory semantics, and behavioral correlation.
 
-The project explored a difficult defensive-security question: how much visibility do modern Windows endpoint protections retain when a custom C++ research prototype uses low-level Windows mechanisms instead of conventional application patterns?
+This is a deliberately limited public engineering record. It contains enough technical material to evaluate the work, but it does not distribute the loader, payload, bypass implementation, infrastructure, or reproduction procedure.
 
-I designed and implemented a modular prototype, built an isolated Windows 11 / Linux test environment, and documented the work in a 57-page engineering report. The work required C++, Windows internals, PE-format analysis, native operating-system interfaces, x64 concepts, memory-lifecycle engineering, controlled command-and-control validation, and repeatable security testing.
+## What is verifiable here
 
-## Public-release boundary
+| Artifact | What it demonstrates |
+|---|---|
+| [Public-safe C++ subset](public-code/) | Compile-ready C++20, defensive PE-header parsing, entropy measurement, bounds checking, and testable data modelling |
+| [Seven-layer technical model](TECHNICAL-NOTES.md) | The complete research surface, defensive signals considered, observed limits, and explicit publication boundary |
+| [Sanitized lab video](assets/demo/echoseek-lab-validation-redacted.mp4) | Defender state, runtime memory transition, controlled Sliver session establishment, and final custom-scan result |
+| [Validation notes](VALIDATION.md) | Environment, evidence chain, reported observations, and interpretation limits |
+| [Evidence stills](#evidence-stills) | Privacy-safe snapshots extracted from the private engineering report |
 
-This repository intentionally contains **no runnable code** and **no operational material**. The following remain private:
+## Engineering scope
 
-- source code, binaries, payloads, build scripts, and cryptographic material;
-- infrastructure addresses, server configuration, and deployment instructions;
-- implementation-level evasion details;
-- the full academic report and unredacted internship documents.
-
-The goal is to demonstrate the engineering and research outcome without releasing a tool that could be reused outside an authorized lab.
-
-## What I achieved
-
-- Designed a modular Windows research prototype with separate execution, system-interface, telemetry, resource, and build components.
-- Implemented approximately 400 lines of compact C++/header/build/support code, with no third-party runtime dependency in the Windows component.
-- Built a repeatable evaluation workflow across static scanning, runtime observation, memory inspection, endpoint telemetry, and end-to-end lab connectivity.
-- Evaluated the prototype against Microsoft Defender, Malwarebytes, and Bitdefender in controlled configurations.
-- Identified and documented a meaningful boundary: Bitdefender's advanced behavioral layer detected the runtime behavior even when static and memory-oriented checks did not.
-- Produced a 57-page bilingual technical report and received a strong internship evaluation for technical mastery, autonomy, rigor, and initiative.
-
-## Sanitized architecture
+The private prototype was organized into execution, native-interface, telemetry, resource, and build components. The public repository exposes only analytical and documentation code. The original implementation remains withheld because its components are operational when combined.
 
 ```mermaid
 flowchart LR
-    A[Controlled lab input] --> B[Environment and integrity checks]
-    B --> C[Low-level Windows interface layer]
-    C --> D[Managed in-memory staging]
+    A[Controlled input] --> B[Environment assessment]
+    B --> C[Windows interface layer]
+    C --> D[Memory lifecycle]
     D --> E[Controlled execution]
-    E --> F[Endpoint and runtime observations]
-    F --> G[Comparative evaluation report]
+    E --> F[Endpoint observations]
+    F --> G[Comparative evaluation]
+
+    S1[Static surface] -. measured .-> A
+    S2[Telemetry] -. observed .-> C
+    S3[Memory semantics] -. observed .-> D
+    S4[Behavior correlation] -. observed .-> E
 ```
 
-This diagram shows component responsibilities only. It omits algorithms, call sequences, configuration, and implementation details.
+The diagram is architectural, not procedural. It intentionally omits algorithms, API sequences, constants, payload formats, and operational configuration.
+
+## Seven layers evaluated
+
+| Layer | Evaluation focus | Outcome in the documented lab |
+|---:|---|---|
+| 1 | Static artifact analysis | No alert in the captured Microsoft Defender scan |
+| 2 | Reputation and heuristic surface | No alert in the documented default Windows 11 configuration |
+| 3 | Environment and sandbox analysis | Controlled execution reached the intended runtime phase |
+| 4 | Telemetry and API observation | User-mode visibility was reduced in the tested configuration |
+| 5 | Native-call interception boundary | The prototype reached the intended native operations |
+| 6 | Memory-region inspection | The tested memory-oriented checks did not identify the staged content |
+| 7 | Behavioral correlation | Bitdefender Advanced Threat Defense detected the runtime behavior |
+
+The final row is important. The project did not achieve universal endpoint-security evasion. Its principal technical finding was the boundary between spatial concealment and behavior-aware detection. The detailed model is in [TECHNICAL-NOTES.md](TECHNICAL-NOTES.md).
+
+## Public-safe code
+
+The code under [`public-code/`](public-code/) is intentionally small but real. It builds and runs independently:
+
+```bash
+cmake -S public-code -B public-code/build
+cmake --build public-code/build
+ctest --test-dir public-code/build --output-on-failure
+```
+
+It includes:
+
+- bounds-checked PE signature and COFF-header inspection;
+- Shannon entropy measurement for byte ranges;
+- a typed model for recording observations across all seven research layers;
+- a self-test using an in-memory synthetic PE header.
+
+It does not include execution, injection, telemetry modification, native-call resolution, payload retrieval, encryption material, or command-and-control logic.
+
+## Technology and test stack
+
+| Technology | Role in the project |
+|---|---|
+| C++ and Windows SDK | Systems implementation, PE structures, Win32 and native-interface research |
+| Windows 11 x64 | Isolated endpoint under evaluation |
+| Kali Linux | Separate authorized lab infrastructure |
+| VMware Workstation | Reproducible virtualized test boundary |
+| [Sliver](https://github.com/BishopFox/sliver) | Authorized adversary-emulation framework used to validate the controlled end-to-end session |
+| Microsoft Defender | Primary Windows endpoint-protection evaluation |
+| Malwarebytes | Secondary real-time and heuristic evaluation |
+| Bitdefender | Static, memory-oriented, and advanced behavioral evaluation |
+| CMake and CTest | Build and verification of the public-safe analytical subset |
+
+Product names and logos belong to their respective owners. Their appearance here identifies the test environment and does not imply endorsement.
+
+## Lab video
+
+[Watch or download the sanitized lab validation video](assets/demo/echoseek-lab-validation-redacted.mp4)
+
+The 127-second H.264 recording is derived from the original test capture. It preserves the observable Defender and runtime transitions while removing audio and excluding public IP addresses, private addresses, ports, endpoint names, usernames, session identifiers, and transfer logs. The unredacted recording is not published.
 
 ## Validation summary
 
 | Evaluation layer | Documented observation | Public evidence |
 |---|---|---|
-| Microsoft Defender custom scan | No threat reported in the captured lab snapshot | Redacted screenshot below |
-| Windows Security after execution | Security dashboard remained in a no-action-needed state in the captured run | Redacted screenshot below |
-| Runtime observation | Expected host process remained active in the lab with the documented memory footprint | Sanitized Task Manager capture below |
-| End-to-end lab path | The staged workflow reached its expected controlled-session state | Verified in the private report; infrastructure evidence withheld |
-| Malwarebytes | No alert in the tested configuration | Detailed evidence withheld |
-| Bitdefender static/memory layers | No alert in the tested configuration | Detailed evidence withheld |
-| Bitdefender advanced behavioral layer | Runtime behavior was detected | Reported openly as a project limitation |
+| Microsoft Defender custom scan | No threat reported in the captured lab snapshot | Screenshot and video |
+| Windows Security after execution | Dashboard remained in a no-action-needed state in the captured run | Screenshot and video |
+| Runtime observation | Expected host process remained active with the documented memory transition | Screenshot and video |
+| End-to-end lab path | The controlled Sliver session reached its expected state | Redacted video; identifiers withheld |
+| Malwarebytes | No alert in the tested configuration | Private report |
+| Bitdefender static and memory layers | No alert in the tested configuration | Private report |
+| Bitdefender advanced behavioral layer | Runtime behavior was detected | Reported as the main limitation |
 
-These are time-bounded observations from a specific isolated test setup, not claims about current product versions or universal bypass capability. See [VALIDATION.md](VALIDATION.md) for the evidence policy and limitations.
+These are time-bounded observations from a specific isolated environment, not claims about current product versions or universal bypass capability.
 
-## Sanitized evidence
-
-The following images are privacy-preserving crops derived from the original report. Infrastructure identifiers and unrelated desktop context were removed; the security-status values were not intentionally changed.
+## Evidence stills
 
 ### Defender scan snapshot
 
-![Windows Security custom scan showing no threats in the documented test snapshot](assets/evidence/defender-scan-redacted.png)
+![Windows Security custom scan showing no threats in the documented snapshot](assets/evidence/defender-scan-redacted.png)
 
-### Windows Security state after the documented run
+### Windows Security after the documented run
 
-![Windows Security dashboard showing no action needed in the documented test snapshot](assets/evidence/defender-status-redacted.png)
+![Windows Security dashboard showing no action needed in the documented snapshot](assets/evidence/defender-status-redacted.png)
 
 ### Runtime process observation
 
-![Task Manager showing the expected Windows host process and memory footprint](assets/evidence/runtime-process-observation.jpg)
-
-## Skills demonstrated
-
-- C++ systems programming and modular design
-- Windows internals and PE-format analysis
-- Native API and x64 execution concepts
-- Memory-management and telemetry research
-- Isolated lab design and reproducible experimentation
-- Endpoint-security evaluation and technical writing
-- Responsible handling of dual-use research
+![Task Manager showing the expected host process memory transition](assets/evidence/runtime-process-observation.jpg)
 
 ## Independent verification
 
-A signed internship attestation and evaluation from ACKSEEK confirm successful completion of the internship and the ECHOSEEK project. The originals include personal and company contact data, signatures, and stamps, so they are available only for private recruiter or academic verification.
+A signed internship attestation and evaluation from ACKSEEK confirm successful completion of the internship and the ECHOSEEK project. The originals contain contact data, signatures, and company stamps, so they are available only for legitimate private academic or recruitment verification.
 
-## Responsible-use statement
+## Publication boundary
 
-This repository is documentation-only. It is intended for portfolio review, defensive research discussion, and authorized academic evaluation. Please do not request source code, binaries, payloads, or deployment guidance.
+The following are not distributed:
+
+- the original stager source, executable, payload, or build chain;
+- telemetry modification or native-call implementation;
+- memory-execution and thread-dispatch implementation;
+- encrypted configuration, keys, addresses, or deployment instructions;
+- the full report, unredacted video, and internship documents.
+
+This repository is intended for portfolio review, defensive research discussion, and authorized academic evaluation. It is not a software release.
 
 Copyright (c) 2026 Akram Moho Amer. No license is granted for the private implementation or omitted materials.

@@ -1,0 +1,38 @@
+name: Public-safe C++ build
+
+on:
+  push:
+    paths:
+      - "public-code/**"
+      - ".github/workflows/public-safe-build.yml"
+  pull_request:
+    paths:
+      - "public-code/**"
+      - ".github/workflows/public-safe-build.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  build-and-test:
+    name: ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os:
+          - ubuntu-latest
+          - windows-latest
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Configure
+        run: cmake -S public-code -B public-code/build
+
+      - name: Build
+        run: cmake --build public-code/build --config Release
+
+      - name: Test
+        run: ctest --test-dir public-code/build -C Release --output-on-failure

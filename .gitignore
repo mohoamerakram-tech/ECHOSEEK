@@ -35,3 +35,7 @@ payloads/
 build/
 dist/
 tmp/
+
+# Explicitly permit the reviewed, non-operational public C++ subset.
+!public-code/
+!public-code/**

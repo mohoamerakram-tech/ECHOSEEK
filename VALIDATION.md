@@ -18,7 +18,7 @@ The private project archive contains:
 6. a 57-page engineering report connecting the design, method, observations, and limitations;
 7. signed internship completion and evaluation documents.
 
-Only three low-risk, privacy-safe screenshots are included here. Stronger evidence is withheld because it contains infrastructure identifiers, personal data, or operational details.
+The public release includes three low-risk screenshots and a sanitized test video. The video retains the Defender and runtime observations, but audio, infrastructure views, session metadata, and transfer logs are excluded. Stronger evidence is withheld because it contains infrastructure identifiers, personal data, or operational details.
 
 ## Reported observations
 
