@@ -205,13 +205,37 @@ Task Manager is filtered to the expected Windows host process. The GIF deliberat
 
 ### Step 3 — Confirm the controlled session
 
-The isolated Linux system reaches the expected Sliver session state, confirming that the complete lab path executed end to end. The framework identity remains visible while addresses, host data, usernames, session identifiers, hashes, and operational logs are covered.
+This is the strongest public evidence in the repository. It follows three independent milestones from the same controlled run: the HTTPS retrieval completes, Sliver records a beacon check-in from the Windows VM, and a `whoami` request returns the expected synthetic lab identity. Together they show that the test progressed beyond a file transfer or a static console screen.
+
+#### 3.1 — HTTP connection completed
+
+The server log visibly records the authentic `GET /beacon.bin HTTP/1.1` request with status `200`. The source address and bind configuration are covered, but the request path and success status remain visible.
 
 <p align="center">
-  <img src="assets/demo/steps/step-3-session-confirmation.gif" alt="Full-frame controlled Sliver session confirmation with metadata and logs redacted" width="900">
+  <img src="assets/demo/steps/step-3a-http-connection.gif" alt="Full-frame HTTP request proof showing an authentic GET request and 200 response with addresses redacted" width="900">
 </p>
 
-**What this supports:** the authorized test session was established. It intentionally does not expose the infrastructure or reproduce the operational procedure.
+**What this supports:** the Windows-side retrieval reached the isolated HTTPS server and the requested test artifact was served successfully.
+
+#### 3.2 — Beacon check-in observed
+
+The Sliver console then records an authentic beacon event. The later beacon table keeps the transport, synthetic `ACKSEEK` hostname, synthetic `C2` account, and `windows/amd64` platform visible while the beacon name, unique ID, address, and timing identifiers are covered.
+
+<p align="center">
+  <img src="assets/demo/steps/step-3b-beacon-checkin.gif" alt="Full-frame Sliver beacon check-in and beacon table with unique identifiers redacted" width="900">
+</p>
+
+**What this supports:** the authorized Windows VM checked in to the controlled Sliver environment and was recognized as a Windows x64 endpoint.
+
+#### 3.3 — `whoami` response verified
+
+Finally, the console visibly submits `whoami` through the active beacon and receives `Logon ID: ACKSEEK\C2`. `ACKSEEK\C2` is a synthetic lab identity, not a personal account. The active-beacon name, UUID, task identifier, addresses, and unrelated logs remain covered.
+
+<p align="center">
+  <img src="assets/demo/steps/step-3c-whoami-verification.gif" alt="Full-frame whoami verification showing the synthetic ACKSEEK C2 lab identity returned through the active beacon" width="900">
+</p>
+
+**What this supports:** a command crossed the established control channel, executed in the expected Windows security context, and returned a result. This is the clearest end-to-end proof shown publicly, without exposing the infrastructure or enough detail to reproduce the procedure.
 
 ### Step 4 — Perform the post-run Defender check
 
@@ -232,7 +256,7 @@ For reviewers who want the uninterrupted sequence, the repository also includes 
 | Microsoft Defender custom scan | No threat reported in the captured snapshot | Step 4 GIF and complete recording |
 | Windows Security after execution | No action required in the captured run | Step 4 GIF and complete recording |
 | Runtime process observation | Expected host process remained active with the documented memory transition | Step 2 GIF and complete recording |
-| Controlled Sliver path | Session reached its expected state | Step 3 GIF with metadata redacted |
+| Controlled Sliver path | HTTP retrieval succeeded, the Windows beacon checked in, and `whoami` returned the synthetic lab identity | Step 3.1, 3.2, and 3.3 GIFs with identifiers redacted |
 | Malwarebytes | No alert in the tested configuration | Private engineering report |
 | Bitdefender static and memory-oriented checks | No alert in the tested configuration | Private engineering report |
 | Bitdefender Advanced Threat Defense | Runtime behavior was detected | Reported as the principal limitation |

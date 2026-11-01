@@ -18,7 +18,7 @@ The private project archive contains:
 6. a 57-page engineering report connecting the design, method, observations, and limitations;
 7. signed internship completion and evaluation documents.
 
-The public release includes four annotated full-frame GIF excerpts, three low-risk screenshots, and a sanitized test video. The GIFs make the baseline, memory transition, controlled-session confirmation, and post-run scan independently understandable. The recording retains the Defender and runtime observations, but audio, infrastructure identifiers, session metadata, and transfer logs are excluded. Stronger evidence is withheld because it contains infrastructure identifiers, personal data, or operational details.
+The public release includes annotated full-frame GIF excerpts, three low-risk screenshots, and a sanitized test video. The GIFs make the baseline, memory transition, HTTP `200` response, Sliver beacon check-in, `whoami` verification, and post-run scan independently understandable. The synthetic `ACKSEEK\C2` lab identity remains visible as end-to-end confirmation; infrastructure addresses, unique session identifiers, hashes, unrelated logs, and audio are excluded. Stronger evidence is withheld because it contains infrastructure identifiers, personal data, or operational details.
 
 ## Reported observations
 
