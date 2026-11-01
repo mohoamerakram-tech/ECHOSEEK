@@ -50,6 +50,69 @@ flowchart LR
 
 The diagram is architectural, not procedural. It intentionally omits algorithms, API sequences, constants, payload formats, and operational configuration.
 
+## How the private prototype works
+
+The private program is a staged Windows research prototype. In plain language, its data flow is:
+
+1. **Recover configuration.** A small configuration value is decoded only when the program runs, reducing obvious readable strings in the file.
+2. **Acquire the controlled test input.** Windows networking APIs parse the configured endpoint and receive the authorized lab artifact into a dynamically sized buffer.
+3. **Prepare the in-memory representation.** The received bytes are transformed into the internal layout expected by the prototype. The exact wrapper and offsets are not public.
+4. **Move through the memory lifecycle.** The private implementation separates the writable preparation phase from the executable view used later. This let the project study how memory type, permissions, and transition history affect detection.
+5. **Transfer control.** Execution is scheduled on the current process using a Windows asynchronous-dispatch mechanism. The dispatch call sequence is withheld.
+6. **Measure the result.** The run is observed from Windows, the controlled Sliver environment, and several endpoint-security products. The Bitdefender behavioral result showed that reducing isolated indicators did not erase the complete runtime story.
+
+This description explains the engineering chain without providing the constants, native-call resolver, telemetry modification, memory-mapping sequence, or dispatch sequence required to reproduce it.
+
+## Authentic fragments from the private source
+
+The following excerpts are copied from the original project source. Only small, non-operational fragments are shown; adjacent loader logic, identifiers, secrets, and execution code are omitted.
+
+### 1. In-place byte transformation
+
+```cpp
+void XorMemory(PVOID base, SIZE_T size, BYTE* key, DWORD keyLen) {
+    BYTE* p = (BYTE*)base;
+    for (SIZE_T i = 0; i < size; i++) {
+        p[i] ^= key[i % keyLen];
+    }
+}
+```
+
+The function walks a byte range and combines each byte with a repeating key. Applying the same operation twice restores the original bytes. It demonstrates pointer arithmetic, bounded iteration, and in-place transformation; it is simple obfuscation, not cryptographic protection. The original key and the data passed to this helper are not published.
+
+### 2. Windows URL decomposition
+
+```cpp
+URL_COMPONENTS urlComp;
+ZeroMemory(&urlComp, sizeof(urlComp));
+urlComp.dwStructSize = sizeof(urlComp);
+urlComp.dwHostNameLength = (DWORD)-1;
+urlComp.dwUrlPathLength = (DWORD)-1;
+urlComp.dwExtraInfoLength = (DWORD)-1;
+if (!WinHttpCrackUrl(wide_url, 0, 0, &urlComp)) {
+    return 1;
+}
+```
+
+Windows receives a fully initialized `URL_COMPONENTS` structure and returns views of the hostname, path, and extra information. Setting the component lengths to `-1` asks WinHTTP to calculate them. The actual endpoint, component copies, request construction, certificate settings, and transfer procedure are deliberately absent.
+
+### 3. Checked geometric buffer growth
+
+```cpp
+if (totalBytes + bytesRead > capacity) {
+    capacity *= 2;
+    unsigned char* newPayload = (unsigned char*)realloc(payload, capacity);
+    if (!newPayload) { free(payload); return 1; }
+    payload = newPayload;
+}
+memcpy(payload + totalBytes, buffer, bytesRead);
+totalBytes += bytesRead;
+```
+
+The receive buffer starts with reserved capacity and doubles only when the next block would exceed it. The temporary `realloc` result prevents the original allocation from being lost on failure. The final two lines append the new block and advance the logical length. The code that obtains the bytes and the code that consumes the completed buffer are not public.
+
+These excerpts establish that the portfolio is backed by working Windows C++ while keeping the operational composition private. The separate [`public-code/`](public-code/) directory contains a safe program that reviewers can compile and execute.
+
 ## Seven layers evaluated
 
 | Layer | Evaluation focus | Outcome in the documented lab |
